@@ -126,11 +126,13 @@ median(tapply(rmna_activity$steps,rmna_activity$date, sum),na.rm = TRUE)
 
 
 ## What is the average daily activity pattern?
-Using aggregate() function to get average steps taken across all days and make a time series plot.
+Using aggregate() function to get average steps taken across all days and make a time series plot. Convert the interval into hours to get a proportionate scale.
+
 
 ```r
 avstep <- aggregate(steps ~ interval, mean, data=ractivity, rm.na =TRUE)
-plot(avstep[,1],avstep[,2], type="l", xlab = "Interval", ylab="Average Steps", main ="Average Steps Taken Across All Days", col=3)
+avstep$hr <- (avstep$interval %/% 100) + (avstep$interval %% 100)/60
+plot(avstep[,3],avstep[,2], type="l", xlab = "Interval (hours)", ylab="Average Steps", main ="Average Steps Taken Across All Days", col=3)
 ```
 
 ![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
@@ -142,8 +144,8 @@ avstep[round(avstep[,2],2) == round(max(avstep[,2]),2),]
 ```
 
 ```
-##     interval    steps
-## 104      835 206.1698
+##     interval    steps       hr
+## 104      835 206.1698 8.583333
 ```
 ## Imputing missing values
 
@@ -170,6 +172,7 @@ Plot a histogram with newly created data set
 ```
 
 ![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
+
 Apply mean() and median() functions on the total steps per day on new data set
 
 ```r
@@ -192,7 +195,7 @@ Since the average is assigned to all the missing value, the new mean is the same
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-Add a new column to the data set nactivity and assign "Weekday" and "Weekend" accordingly. Convert that column as factor. Generate average steps taken across all days using aggregate function and assign to a variabl called navstep.  
+Add a new column to the data set nactivity and assign "Weekday" and "Weekend" accordingly. Convert that column as factor. Generate average steps taken across all days using aggregate function and assign to a variabl called navstep. Convert interval into hours and add as a new column to navstep.  
 
 
 ```r
@@ -201,15 +204,16 @@ nactivity[weekdays(as.Date(nactivity[,2])) %in% c("Saturday","Sunday"),4] <- "We
 nactivity[!weekdays(as.Date(nactivity[,2])) %in% c("Saturday","Sunday"),4] <- "Weekday"
 nactivity$Wday <- as.factor(nactivity$Wday)
 navstep <- aggregate(steps ~ interval+Wday, mean, data=nactivity, rm.na =TRUE)
+navstep$hr <- (navstep$interval %/% 100) + (navstep$interval %% 100)/60
 ```
 
 Then make a panel plot using Lattice plotting system.
 
 ```r
 library(lattice)
-xyplot(steps ~ interval | Wday, data = navstep, layout = c(1,2), type = "l", xlab = "Interval", ylab = "Number of Steps" )
+xyplot(steps ~ hr | Wday, data = navstep, layout = c(1,2), type = "l", xlab = "Interval (hours)",ylab = "Number of Steps")
 ```
 
 ![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
 
-
+We can see from the graph that during the weekend the activity is spread out the whole day.  During the weekday, the activity level peaks just before the office hour --most probably caused by the commute to work.
